@@ -55,6 +55,7 @@ export async function GET(request: Request) {
       name?: string;
       email?: string;
       employeeId?: string;
+      location?: string;
       phone?: string;
     }
 
@@ -63,45 +64,44 @@ export async function GET(request: Request) {
       specialty?: string;
       clinicHospital?: string;
       cityLocation?: string;
+      legacyCode?: string;
       phone?: string;
     }
 
     const visits = await Visit.find(filter)
       .sort({ visitDate: -1 })
-      .populate('mr', 'name email employeeId phone')
-      .populate('doctor', 'name specialty clinicHospital cityLocation phone')
+      .populate('mr', 'name email employeeId location phone')
+      .populate('doctor', 'name specialty clinicHospital cityLocation legacyCode phone')
       .lean();
 
     // Flatten into export rows: row per brand entry or comprehensive visit row
     const exportRows = visits.flatMap((v) => {
       const mr = (v.mr as PopulatedMR) || {};
       const doc = (v.doctor as PopulatedDoctor) || {};
-      const visitDateStr = v.visitDate ? new Date(v.visitDate).toISOString().split('T')[0] : '';
+      const entryDateStr = v.visitDate ? new Date(v.visitDate).toISOString().split('T')[0] : '';
       const brandsSummary = v.brands.map((b) => `${b.brandName} (${b.units} units)`).join('; ');
 
       // Each brand as an entry for easy pivot tables & analytics
       return v.brands.map((b, idx) => ({
-        'Visit ID': v._id.toString(),
-        'Visit Date': visitDateStr,
-        'MR Name': mr.name || 'N/A',
-        'MR Email': mr.email || 'N/A',
-        'MR Employee ID': mr.employeeId || 'N/A',
+        'Entry Date': entryDateStr,
+        'Employee ID': mr.employeeId || 'N/A',
+        'Employee Name': mr.name || 'N/A',
+        'Employee Territory': mr.location || 'N/A',
+        'Doctor Code': doc.legacyCode || 'N/A',
         'Doctor Name': doc.name || 'N/A',
         'Specialty': doc.specialty || 'N/A',
-        'Clinic / Hospital': doc.clinicHospital || 'N/A',
-        'City / Location': doc.cityLocation || 'N/A',
-        'Doctor Phone': doc.phone || 'N/A',
-        'Brand Promoted': b.brandName,
+        'Doctor Location': doc.cityLocation || doc.clinicHospital || 'N/A',
+        'Brand Reported': b.brandName,
         'Units Reported': b.units,
-        'Brand Entry #': `${idx + 1} of ${v.brands.length}`,
-        'All Brands In Visit': brandsSummary,
+        'Brand Item #': `${idx + 1} of ${v.brands.length}`,
+        'All Brands In Entry': brandsSummary,
         'Remarks / Feedback': v.remarks || '',
       }));
     });
 
     const worksheet = XLSX.utils.json_to_sheet(exportRows);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Erdosteine RCPA Visits');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Erdosteine RCPA Entries');
 
     const dateTag = new Date().toISOString().split('T')[0];
 

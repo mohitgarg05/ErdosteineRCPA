@@ -57,13 +57,13 @@ export async function POST(request: Request) {
     });
 
     const populatedVisit = await Visit.findById(visit._id)
-      .populate('mr', 'name email employeeId')
-      .populate('doctor', 'name specialty clinicHospital cityLocation')
+      .populate('mr', 'name email employeeId location region')
+      .populate('doctor', 'name specialty clinicHospital cityLocation legacyCode pcode')
       .lean();
 
     return NextResponse.json({
       success: true,
-      message: 'Doctor visit entry recorded successfully',
+      message: 'RCPA entry recorded successfully',
       visit: populatedVisit,
     });
   } catch (error: unknown) {
@@ -127,9 +127,9 @@ export async function GET(request: Request) {
 
     const visits = await Visit.find(filter)
       .sort({ visitDate: -1, createdAt: -1 })
-      .populate('mr', 'name email employeeId phone')
-      .populate('doctor', 'name specialty clinicHospital cityLocation phone')
-      .limit(200)
+      .populate('mr', 'name email employeeId phone location region')
+      .populate('doctor', 'name specialty clinicHospital cityLocation phone legacyCode pcode')
+      .limit(300)
       .lean();
 
     return NextResponse.json({

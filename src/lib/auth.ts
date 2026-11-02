@@ -11,6 +11,9 @@ export interface UserSessionPayload {
   email: string;
   name: string;
   role: 'admin' | 'mr';
+  employeeId?: string;
+  location?: string;
+  region?: string;
 }
 
 export async function hashPassword(plainText: string): Promise<string> {

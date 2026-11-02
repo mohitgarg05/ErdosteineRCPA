@@ -65,40 +65,21 @@ export default function MRLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="flex items-center gap-1 sm:gap-2">
-            <Link
-              href="/mr/new-visit"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition ${
-                pathname === '/mr/new-visit'
-                  ? 'bg-teal-50 text-teal-700 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>Log Visit</span>
-            </Link>
-
-            <Link
-              href="/mr/history"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition ${
-                pathname === '/mr/history'
-                  ? 'bg-teal-50 text-teal-700 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <History className="w-4 h-4" />
-              <span>My Visits</span>
-            </Link>
+          {/* Top Info & Actions */}
+          <div className="flex items-center gap-2">
+            <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200/60">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Field Entry Mode
+            </span>
 
             {/* User profile / Logout */}
             <div className="flex items-center gap-2 pl-2 sm:pl-3 ml-2 border-l border-slate-200">
-              <div className="hidden sm:flex flex-col text-right">
+              <div className="flex flex-col text-right">
                 <span className="text-xs font-semibold text-slate-800 leading-tight">
                   {user?.name}
                 </span>
-                <span className="text-[10px] text-slate-500">
-                  {user?.email}
+                <span className="text-[10px] font-mono text-teal-600">
+                  {user?.employeeId ? `Emp ID: ${user.employeeId}` : user?.email}
                 </span>
               </div>
               <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 border border-slate-200">
@@ -112,7 +93,7 @@ export default function MRLayout({ children }: { children: React.ReactNode }) {
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
-          </nav>
+          </div>
         </div>
       </header>
 

@@ -60,11 +60,10 @@
 
 The database automatically initializes these demo accounts on first launch:
 
-| Role | Email | Password | Description |
+| Role | Identifier / Email | Password | Description |
 |---|---|---|---|
-| **Admin** | `admin@erdosteine.com` | `admin123` | Full access to Doctor Master & RCPA Export |
-| **MR** | `mr@erdosteine.com` | `mr123` | Medical Representative (Rajesh Sharma) |
-| **MR 2** | `mr2@erdosteine.com` | `mr123` | Medical Representative (Priya Patel) |
+| **Admin** | `admin@erdosteine.com` | `Erdosteine!2026--` | Full access to Doctor Master & RCPA Entries Dashboard |
+| **MR / Field Rep** | `EMP-ID` (e.g. `149893`) | *None required* | Direct access to assigned doctor call list |
 
 ---
 

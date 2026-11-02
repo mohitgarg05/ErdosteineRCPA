@@ -3,12 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Pill, UserCheck, Lock, Mail, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { Pill, UserCheck, IdCard, ArrowRight, Loader2, Sparkles } from 'lucide-react';
 
 export default function MRLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [employeeId, setEmployeeId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -30,16 +29,23 @@ export default function MRLoginPage() {
       .finally(() => setCheckingAuth(false));
   }, [router]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (e: React.FormEvent, overrideEmpId?: string) => {
+    if (e) e.preventDefault();
     setError('');
     setLoading(true);
+
+    const empToUse = (overrideEmpId || employeeId).trim();
+    if (!empToUse) {
+      setError('Please enter your Employee ID');
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, role: 'mr' }),
+        body: JSON.stringify({ employeeId: empToUse, role: 'mr' }),
       });
 
       const data = await res.json();
@@ -53,11 +59,6 @@ export default function MRLoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const autofillDemoMR = () => {
-    setEmail('mr@erdosteine.com');
-    setPassword('mr123');
   };
 
   if (checkingAuth) {
@@ -85,10 +86,6 @@ export default function MRLoginPage() {
             </p>
           </div>
         </div>
-
-        <p className="text-center text-sm text-slate-600 mt-2">
-          Doctor Prescription Audit & Field Reporting
-        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
@@ -96,10 +93,10 @@ export default function MRLoginPage() {
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
               <UserCheck className="w-5 h-5 text-teal-600" />
-              MR Sign In
+              MR / TM Sign In
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Enter your credentials to record doctor visits and RCPA units
+              Enter your Employee ID to access your assigned doctor call list
             </p>
           </div>
 
@@ -111,52 +108,37 @@ export default function MRLoginPage() {
 
           <form className="space-y-4" onSubmit={handleLogin}>
             <div>
-              <label className="block text-xs font-medium text-slate-700 uppercase tracking-wider mb-1">
-                Email / User ID
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                Employee ID (EMP-ID)
               </label>
               <div className="relative rounded-lg shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Mail className="h-4 w-4" />
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <IdCard className="h-5 w-5 text-teal-600" />
                 </div>
                 <input
-                  type="email"
+                  type="text"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="mr@erdosteine.com"
-                  className="block w-full pl-10 pr-3 py-2.5 sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-slate-900 placeholder:text-slate-400 bg-slate-50/50"
+                  autoFocus
+                  value={employeeId}
+                  onChange={(e) => setEmployeeId(e.target.value)}
+                  placeholder="e.g. 149893"
+                  className="block w-full pl-11 pr-3 py-3 text-base sm:text-sm font-medium border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-slate-900 placeholder:text-slate-400 bg-slate-50/50"
                 />
               </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 uppercase tracking-wider mb-1">
-                Password
-              </label>
-              <div className="relative rounded-lg shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Lock className="h-4 w-4" />
-                </div>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="block w-full pl-10 pr-3 py-2.5 sm:text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-slate-900 placeholder:text-slate-400 bg-slate-50/50"
-                />
-              </div>
+              <p className="text-[11px] text-slate-500 mt-1">
+                No password needed. Just your employee ID number.
+              </p>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 transition"
+              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 transition"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Authenticating...
+                  Verifying ID...
                 </>
               ) : (
                 <>
@@ -167,28 +149,8 @@ export default function MRLoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Fill Pill */}
-          <div className="mt-6 pt-5 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={autofillDemoMR}
-              className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-md text-xs font-medium border border-teal-200/60 transition"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-              Click here to autofill sample MR credentials (mr@erdosteine.com)
-            </button>
-          </div>
         </div>
 
-        {/* Link to Admin */}
-        <div className="mt-6 text-center">
-          <Link
-            href="/admin"
-            className="text-xs text-slate-500 hover:text-teal-700 font-medium inline-flex items-center gap-1 transition"
-          >
-            Looking for Manager / Admin Access? Go to Admin Portal →
-          </Link>
-        </div>
       </div>
     </div>
   );

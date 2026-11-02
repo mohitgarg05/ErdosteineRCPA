@@ -9,22 +9,36 @@ export async function GET(request: Request) {
     await connectToDatabase();
     await ensureInitialSeed();
 
+    const session = await getSession();
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q')?.trim() || '';
-    const limit = Math.min(Number(searchParams.get('limit')) || 50, 200);
+    const requestedEmpId = searchParams.get('employeeId')?.trim();
+    const limit = Math.min(Number(searchParams.get('limit')) || 100, 500);
 
-    let filter = {};
+    const filterConditions: Record<string, unknown>[] = [];
+
+    // Mapping Filter: If logged-in as MR, restrict strictly to their assigned doctors
+    if (session && session.role === 'mr' && session.employeeId) {
+      filterConditions.push({ assignedEmployeeIds: session.employeeId });
+    } else if (requestedEmpId) {
+      // If admin wants to view a specific employee's doctor list
+      filterConditions.push({ assignedEmployeeIds: requestedEmpId });
+    }
+
     if (query) {
       const regex = new RegExp(query, 'i');
-      filter = {
+      filterConditions.push({
         $or: [
           { name: regex },
           { specialty: regex },
           { clinicHospital: regex },
           { cityLocation: regex },
+          { legacyCode: regex },
         ],
-      };
+      });
     }
+
+    const filter = filterConditions.length > 0 ? { $and: filterConditions } : {};
 
     const doctors = await Doctor.find(filter)
       .sort({ name: 1 })
@@ -34,6 +48,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       count: doctors.length,
+      employeeId: session?.employeeId || requestedEmpId || null,
       doctors,
     });
   } catch (error: unknown) {
