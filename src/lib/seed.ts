@@ -28,17 +28,28 @@ export async function ensureInitialSeed() {
     );
   }
 
-  // 2. Seed Default Brands
-  const brandCount = await Brand.countDocuments();
-  if (brandCount === 0) {
-    await Brand.insertMany([
-      { name: 'Erdosteine 300mg Capsules', isOwnProduct: true, isActive: true },
-      { name: 'Erdosteine 175mg/5ml Suspension', isOwnProduct: true, isActive: true },
-      { name: 'N-Acetylcysteine 600mg (NAC)', isOwnProduct: false, isActive: true },
-      { name: 'Acebrophylline 100mg', isOwnProduct: false, isActive: true },
-      { name: 'Ambroxol + Levosalbutamol', isOwnProduct: false, isActive: true },
-      { name: 'Montelukast + Levocetirizine', isOwnProduct: false, isActive: true },
-    ]);
+  // 2. Seed Default Brands (inserts any missing defaults, so existing databases get new brands too)
+  const defaultBrands = [
+    { name: 'Erdosteine 300mg Capsules', isOwnProduct: true, isActive: true },
+    { name: 'Erdosteine 175mg/5ml Suspension', isOwnProduct: true, isActive: true },
+    { name: 'N-Acetylcysteine 600mg (NAC)', isOwnProduct: false, isActive: true },
+    { name: 'Acebrophylline 100mg', isOwnProduct: false, isActive: true },
+    { name: 'Ambroxol + Levosalbutamol', isOwnProduct: false, isActive: true },
+    { name: 'Montelukast + Levocetirizine', isOwnProduct: false, isActive: true },
+    { name: 'ERDOMAC AB', isOwnProduct: false, isActive: true },
+    { name: 'AB PHYLLINE E', isOwnProduct: false, isActive: true },
+    { name: 'ABEVIA-E', isOwnProduct: false, isActive: true },
+    { name: 'BRONSTEDO', isOwnProduct: false, isActive: true },
+    { name: 'AB-FLO E', isOwnProduct: false, isActive: true },
+    { name: 'ERDOMAC', isOwnProduct: false, isActive: true },
+    { name: 'ERDOSTYNE', isOwnProduct: false, isActive: true },
+  ];
+  const existingBrandNames = new Set(
+    (await Brand.find({}, { name: 1 }).lean()).map((b) => b.name)
+  );
+  const missingBrands = defaultBrands.filter((b) => !existingBrandNames.has(b.name));
+  if (missingBrands.length > 0) {
+    await Brand.insertMany(missingBrands);
   }
 
   // 3. Seed All Employees and Doctor Mappings from Book1.xlsx

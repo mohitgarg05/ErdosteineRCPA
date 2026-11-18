@@ -41,7 +41,10 @@ interface BrandItem {
 interface BrandUnitRow {
   brandName: string;
   units: number | string;
+  isOther?: boolean;
 }
+
+const OTHER_BRAND_VALUE = '__other__';
 
 export default function NewVisitPage() {
   const router = useRouter();
@@ -118,6 +121,16 @@ export default function NewVisitPage() {
     setBrandRows(updated);
   };
 
+  const handleBrandSelect = (index: number, value: string) => {
+    const updated = [...brandRows];
+    if (value === OTHER_BRAND_VALUE) {
+      updated[index] = { ...updated[index], brandName: '', isOther: true };
+    } else {
+      updated[index] = { ...updated[index], brandName: value, isOther: false };
+    }
+    setBrandRows(updated);
+  };
+
   const handleSubmitVisit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -131,7 +144,7 @@ export default function NewVisitPage() {
     for (let i = 0; i < brandRows.length; i++) {
       const row = brandRows[i];
       if (!row.brandName.trim()) {
-        setErrorMessage(`Please enter a brand name for entry #${i + 1}`);
+        setErrorMessage(`Please select or type a brand name for entry #${i + 1}`);
         return;
       }
       if (!row.units || Number(row.units) <= 0) {
@@ -429,22 +442,30 @@ export default function NewVisitPage() {
                   </div>
 
                   {/* Brand selector / input */}
-                  <div className="flex-1">
-                    <div className="relative">
+                  <div className="flex-1 space-y-2">
+                    <select
+                      value={row.isOther ? OTHER_BRAND_VALUE : row.brandName}
+                      onChange={(e) => handleBrandSelect(index, e.target.value)}
+                      className="block w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white text-slate-900 font-medium"
+                    >
+                      <option value="">Select brand...</option>
+                      {availableBrands.map((b) => (
+                        <option key={b._id || b.name} value={b.name}>
+                          {b.name}
+                        </option>
+                      ))}
+                      <option value={OTHER_BRAND_VALUE}>Others (type brand name)</option>
+                    </select>
+                    {row.isOther && (
                       <input
                         type="text"
-                        list={`brands-list-${index}`}
+                        autoFocus
                         value={row.brandName}
                         onChange={(e) => handleBrandChange(index, 'brandName', e.target.value)}
-                        placeholder="Select or type brand name..."
+                        placeholder="Type brand name..."
                         className="block w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white text-slate-900 placeholder:text-slate-400 font-medium"
                       />
-                      <datalist id={`brands-list-${index}`}>
-                        {availableBrands.map((b) => (
-                          <option key={b._id || b.name} value={b.name} />
-                        ))}
-                      </datalist>
-                    </div>
+                    )}
                   </div>
 
                   {/* Units input */}
