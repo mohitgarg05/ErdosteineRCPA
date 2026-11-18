@@ -32,12 +32,6 @@ interface DoctorItem {
   pcode?: string;
 }
 
-interface BrandItem {
-  _id?: string;
-  name: string;
-  isOwnProduct?: boolean;
-}
-
 interface BrandUnitRow {
   brandName: string;
   units: number | string;
@@ -45,6 +39,17 @@ interface BrandUnitRow {
 }
 
 const OTHER_BRAND_VALUE = '__other__';
+
+// Brands shown in the dropdown (in this order). "Others" is appended separately.
+const BRAND_OPTIONS = [
+  'ERDOMAC AB',
+  'AB PHYLLINE E',
+  'ABEVIA-E',
+  'BRONSTEDO',
+  'AB-FLO E',
+  'ERDOMAC',
+  'ERDOSTYNE',
+];
 
 export default function NewVisitPage() {
   const router = useRouter();
@@ -54,9 +59,6 @@ export default function NewVisitPage() {
   const [searchResults, setSearchResults] = useState<DoctorItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorItem | null>(null);
-
-  // Available brands list for quick selection
-  const [availableBrands, setAvailableBrands] = useState<BrandItem[]>([]);
 
   // Form state
   const [visitDate, setVisitDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -70,18 +72,6 @@ export default function NewVisitPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [savedSummary, setSavedSummary] = useState<{ doctorName: string; brandsCount: number } | null>(null);
-
-  // Fetch available brands on mount
-  useEffect(() => {
-    fetch('/api/brands')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.brands) {
-          setAvailableBrands(data.brands);
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   // Fetch initial assigned doctors or search within mapped doctors
   useEffect(() => {
@@ -190,7 +180,7 @@ export default function NewVisitPage() {
   const handleResetForNextDoctor = () => {
     setSelectedDoctor(null);
     setSearchQuery('');
-    setBrandRows([{ brandName: 'Erdosteine 300mg Capsules', units: '' }]);
+    setBrandRows([{ brandName: '', units: '' }]);
     setRemarks('');
     setSavedSuccess(false);
     setSavedSummary(null);
@@ -449,9 +439,9 @@ export default function NewVisitPage() {
                       className="block w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white text-slate-900 font-medium"
                     >
                       <option value="">Select brand...</option>
-                      {availableBrands.map((b) => (
-                        <option key={b._id || b.name} value={b.name}>
-                          {b.name}
+                      {BRAND_OPTIONS.map((name) => (
+                        <option key={name} value={name}>
+                          {name}
                         </option>
                       ))}
                       <option value={OTHER_BRAND_VALUE}>Others (type brand name)</option>
